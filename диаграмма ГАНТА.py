@@ -16,7 +16,7 @@
 import datetime
 import pandas as pd
 from itertools import groupby
-from bokeh.plotting import figure, show, output_notebook, output_file
+from bokeh.plotting import figure, save, output_notebook, output_file
 from bokeh.models import ColumnDataSource, Range1d
 from bs4 import BeautifulSoup
 import time
@@ -103,11 +103,6 @@ def partition_proc(event: list) -> list:
         time_end = datetime.time(23, 59)
 
         for i in range(delta):
-# Добавление индекса разбирым по суткам процессам
-#             temp_list.append([
-#                 (event[0] + '_' + str(i+1)),
-#                 point,
-#                 datetime.datetime.combine(point.date(), time_end)])
             temp_list.append([
                 event[0],
                 point,
@@ -116,8 +111,6 @@ def partition_proc(event: list) -> list:
             point = datetime.datetime.combine(
                 point.date(), time_end
             ) + datetime.timedelta(minutes=1)
-# Добавление индекса разбирым по суткам процессам
-#         temp_list.append([(event[0] + '_' + str(i+2)), point, event[2]])
         temp_list.append([event[0], point, event[2]])
     
         return temp_list
@@ -137,11 +130,11 @@ def main(process_list: list) -> list:
 def diagram_drow_in_file(day_proc: list):
     # Рисует диаграмму Ганта и сохраняет ее в файл
     
-    DF=pd.DataFrame(columns=['Process','Start','End'])
+    DF = pd.DataFrame(columns=['Process', 'Start', 'End'])
     diagram_title = str(day_proc[0][1].date().strftime('%d.%m.%Y'))
     for i, data in enumerate(day_proc[::-1]):
         DF.loc[i] = data
-    G=figure(
+    G = figure(
         title=diagram_title,
         x_axis_type='datetime',
         width=350,
@@ -151,9 +144,9 @@ def diagram_drow_in_file(day_proc: list):
             DF.Start.min() - datetime.timedelta(hours=1),
             DF.End.max() + datetime.timedelta(hours=1))
     )
-    DF['ID']=DF.index+0.75
-    DF['ID1']=DF.index+0.25
-    CDS=ColumnDataSource(DF)
+    DF['ID'] = DF.index+0.75
+    DF['ID1'] = DF.index+0.25
+    CDS = ColumnDataSource(DF)
     G.quad(
         left='Start',
         right='End',
@@ -162,13 +155,13 @@ def diagram_drow_in_file(day_proc: list):
         source=CDS,
         line_width=3)
     output_file(url)
-    show(G)
+    save(G)
 
 
 def parsing_file():
     with open(url) as html:
         diagram = {}
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'html.parser')
 #         diagram['head'] = str(soup.head.contents[7]) + str(soup.head.contents[9])
         diagram['body'] = str(soup.body.find_all(['div', 'script']))[1:-1]
     return diagram
@@ -201,11 +194,11 @@ if __name__ == '__main__':
     
     for day_proc in correct_process_list:
         diagram_drow_in_file(day_proc)
-        time.sleep(0.5)
+        # time.sleep(0.5)
         diagram = parsing_file()
         diagrams_list.append(diagram)
 
-
+print('done')
 # In[ ]:
 
 
